@@ -176,9 +176,7 @@ with a decision and record it in §4.
 
 | # | Discrepancy | Detail |
 |---|---|---|
-| D2 | **Promotion branch name** — *decided, action pending* | Resolved in favour of `testing`. The branch on the remote is still named `test`; the rename to `testing` has **not** been performed yet. Until it is, the docs describe `testing` and the remote has `test`. |
 | D5 | **Python project layout** | `pyproject.toml` is a `uv init` default with a `src/clouddesk/` package layout, a `[project.scripts]` entry and `langchain` as the only dependency. CLAUDE.md §4.3 specifies a `backend/app/` + `agents/` + `rag/` application layout. These are incompatible. |
-| D6 | **Git guide file format** | CLAUDE.md §14 refers to `Git_GitHub_Workflow_Guide.docx`; the file on disk is `docs/Git_Github_Workflow_Guide.md`. |
 | D7 | **Table count** | CLAUDE.md §20 notes the database doc says 16 tables while RLS covers 15 data tables. `database/schema.sql` is the authority once written. |
 | D8 | **Missing README source** | CLAUDE.md §20: the Project 1 `README.md` referenced by the course documents was never supplied, so the §14 command list is taken from stage docs and is unverified. |
 | D9 | **External directories** | The course documents reference `../docs/…`, `../deployment-agent/…` and `../shared-infrastructure/…`, which sit outside the project. Undecided whether they are copied in or referenced. |
@@ -196,7 +194,9 @@ with a decision and record it in §4.
 | 2026-10-31 | **The remote is `https://github.com/luckyparakh/agenticAI.git`** (closes D1) | Confirmed by the user as the repository in use. The `anulsasidharan/CloudDesk.git` URL in the course materials is not used. CLAUDE.md §14 and the Git guide updated. |
 | 2026-10-31 | **The repository is a monorepo** (closes D3) | It will hold roughly three projects of CloudDesk's size plus `lectures/`. CloudDesk is the `clouddesk/` directory. The branch model is repository-wide, not per project; branch names carry the project once a second one exists (`feature/clouddesk-<name>`). |
 | 2026-10-31 | **The remote is live, not empty** (closes D4) | Three commits exist (`01bcb53`, `e860cc8`, `a6bcf03`) and `origin/main`, `origin/development`, `origin/test` are all present. The Git guide's "empty as of 2026-10-23" section 3 was stale and has been rewritten as a clone-and-verify procedure. |
-| 2026-10-31 | **The promotion branch is named `testing`, not `test`** (D2, action pending) | The guide, CLAUDE.md, MEMORY.md and TASKS.md all say `testing`. The rename of the actual branch has not been run yet — see D2. |
+| 2026-10-31 | **The promotion branch is named `testing`, not `test`** (closes D2) | Rename performed and verified: `testing` exists locally and on the remote, `test` is gone on both, and `origin/HEAD` still points at `main`. The old branch carried no commits that were not already in `development`, so nothing was lost. |
+| 2026-10-31 | **Git guide reference corrected** (closes D6) | CLAUDE.md §14 pointed at `Git_GitHub_Workflow_Guide.docx`; the file on disk is `docs/Git_Github_Workflow_Guide.md` and §14 now links to it. The guide's own reading-list row pointing at `.cursor/skills/…` was corrected to `.claude/skills/…` at the same time. |
+| 2026-10-31 | **`TASKS.md` is the course's own version, not the generated one** | The generated tracker numbered sub-tasks `1.1`/`4.2` with its own branch names, which contradicted `docs/Git_Github_Workflow_Guide.md` — already in the repo and written against `P1-1 · feature/backend-config-logging`. The course version is authoritative and uses the `P<phase>-<n>` scheme the guide expects. The generated file has been deleted and is recoverable from git history. Consequence: `TASKS.md` has **14** execution phases against this spec's **13** — see its "Map to `PLAN_PHASE.md`" table and the warning at the top of `PLAN_PHASE.md`. |
 
 ---
 
@@ -207,7 +207,7 @@ Three long-lived branches. Feature work targets `development` only.
 | Branch | Purpose | Represents |
 |---|---|---|
 | `development` | integration branch for active work | dev / integration, not a deploy |
-| `testing` (still named `test` on the remote until the rename is run — see D2) | QA and staging validation | staging |
+| `testing` | QA and staging validation | staging |
 | `main` | code allowed to ship | production candidate; a merge is not a deploy |
 
 - Every feature branch is cut from an up-to-date `development`.

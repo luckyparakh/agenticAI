@@ -93,8 +93,9 @@ Read these before the first feature branch. CLAUDE.md wins if another file disag
 | PLAN.md | Requirement catalog F1–F14 and N1–N8. |
 | MEMORY.md | Locked decisions and honest status. Update it when status changes. |
 | docs/ARCHITECTURE.md | Component and infrastructure diagrams. |
-| .cursor/skills/clouddesk-support/SKILL.md | How to implement a change in this repo. |
+| .claude/skills/clouddesk-support/SKILL.md | How to implement a change in this repo. Also `clouddesk-phase` for running a phase and `clouddesk-contract` for API changes. |
 | docs/API\_CONTRACT.md | Route and payload shapes. Keep it aligned with schemas and frontend/lib/types.ts when a route changes. |
+| docs/FAQ.md | Where these documents came from, which parts are derived, and where to start. |
 
 # 3. First-time setup
 

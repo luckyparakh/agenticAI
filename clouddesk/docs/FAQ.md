@@ -61,7 +61,9 @@ diverge from any other version built from the same course material.
 
 - Everything about a phase except its name — goals, file lists, dependency ordering, tests and
   exit criteria in [PLAN_PHASE.md](../PLAN_PHASE.md)
-- All 73 sub-tasks and their branch names in [TASKS.md](../TASKS.md)
+- ~~The sub-task breakdown in `TASKS.md`~~ — no longer derived. [TASKS.md](../TASKS.md) is now
+  the course's own version, which is authoritative; the generated one was replaced because it
+  used task IDs that disagreed with the Git guide. See the note at the end of this entry.
 - The request and response **field names** in [API_CONTRACT.md](API_CONTRACT.md); only the route
   groups were specified
 - The acceptance criteria under each F-row in [PLAN.md](../PLAN.md), which were inferred from
@@ -73,6 +75,17 @@ example, whether API-created tickets continue the `CD-NNNN` sequence or switch t
 
 The rule when a derived document disagrees with CLAUDE.md: **CLAUDE.md wins.** Fix CLAUDE.md
 first, then the derived file, then the code.
+
+A worked example of that rule. The first generated `TASKS.md` numbered its sub-tasks `1.1`,
+`4.2` and so on, with branch names like `feature/project-scaffold`. But
+[Git_Github_Workflow_Guide.md](Git_Github_Workflow_Guide.md) — already in the repository —
+referred to `P1-1 on feature/backend-config-logging` and `P4-2 · Ticket API`. The derived file
+contradicted a source document. It was replaced with the course's own `TASKS.md`, which uses the
+`P<phase>-<n>` scheme the guide expects. The generated version has been deleted; it is
+recoverable from git history if anyone ever needs to see it.
+
+The lesson: a derived document that looks internally tidy can still be wrong, and the way you
+find out is by checking it against the documents that were already there.
 
 ---
 

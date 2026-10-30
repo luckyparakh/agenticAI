@@ -4,6 +4,26 @@ The build order for CloudDesk. [CLAUDE.md](CLAUDE.md) is the source of truth; th
 it. [PLAN.md](PLAN.md) is the requirement catalog, [MEMORY.md](MEMORY.md) holds locked facts and
 honest status, [TASKS.md](TASKS.md) tracks the branch-level sub-tasks.
 
+> **Phase numbers differ between this file and `TASKS.md`. Always say which file you mean.**
+>
+> This file has 13 phases, matching CLAUDE.md §19. `TASKS.md` splits the work into 14 execution
+> phases so that memory and the console shell can be built in parallel rather than in series.
+> The numbers therefore do **not** line up — "Phase 8" is *Specialist agents* here and *Memory*
+> in `TASKS.md`. The authoritative mapping is the **"Map to `PLAN_PHASE.md`"** table at the
+> bottom of `TASKS.md`:
+>
+> | `TASKS.md` | This file |
+> |---|---|
+> | Phase 8 Memory | Phase 11 Memory (pulled forward of the graph) |
+> | Phase 9 Specialist agents | Phase 8 Specialist agents |
+> | Phase 10 Workflow graph and trace | Phase 9 Workflow graph and trace |
+> | Phase 11 Approval and escalation | Phase 10 Approval and escalation |
+> | Phases 12 and 13 Console shell, Ticket workflow screen | Phase 12 Agent console |
+> | Phase 14 Evaluation and delivery | Phase 13 Evaluation and delivery |
+>
+> Phases 1–7 share the same number in both files. This file remains the **exit-criteria spec**;
+> `TASKS.md` is the **execution order and branch list**.
+
 Phase names and the status table come from CLAUDE.md §19. The per-phase goals, file lists, tests
 and exit criteria are **derived** from the dependency order in CLAUDE.md — if a phase boundary
 here contradicts CLAUDE.md, fix CLAUDE.md first, then this file.
