@@ -152,20 +152,21 @@ The four states are distinct. Never collapse them into "done" (CLAUDE.md §15.1)
 | Planning docs (`PLAN.md`, `PLAN_PHASE.md`, `TASKS.md`, this file) | written |
 | Agent skills (`.claude/skills/`) | written |
 | `docs/API_CONTRACT.md`, `docs/ARCHITECTURE.md` | written — **specification only, no code implements them yet** |
-| Backend application code | **not started** — no `backend/`, `agents/`, `rag/`, `memory/`, `integrations/` directories exist |
+| Backend application code | **in progress** — `backend/app/core/config.py` and `logging.py` exist (P1-1). No `agents/`, `rag/`, `memory/`, `integrations/` directories yet. |
 | Frontend | **not started** |
 | Database schema / sample data | **not started** |
-| Tests | **not started** — `make test` has never been run because there is nothing to run |
+| Tests | **validated locally** for P1-1 only — 53 tests, `uv run pytest` green in ~0.3 s offline. No `Makefile` yet, so `make test` itself does not exist (P1-4). |
 | Containers, Terraform, CI workflows | **not started** |
 | Cloud deployment | **no cloud credentials used; nothing applied to any real account** |
 | GitHub Actions | **never executed** — no workflow files exist and the repo has not been pushed with secrets configured |
 
-What exists on disk today under `clouddesk/`: `CLAUDE.md`, the planning and docs files, a
-`uv init` scaffold (`pyproject.toml`, `uv.lock`, `src/clouddesk/__init__.py`, `.python-version`,
-`.venv/`), and `docs/Git_Github_Workflow_Guide.md`.
+What exists on disk today under `clouddesk/`: `CLAUDE.md`, the planning and docs files,
+`pyproject.toml` + `uv.lock`, `backend/app/core/{config,logging}.py`, `tests/unit/`, and
+`docs/Git_Github_Workflow_Guide.md`.
 
-Nothing in `PLAN.md` is implemented. Every F-row and N-row is `not started` except where
-phase 1 is partially underway.
+Nothing in `PLAN.md` is fully implemented. Every F-row and N-row is `not started`; P1-1 is
+groundwork for F14 but does not close it, because the fake LLM provider (P1-4 / `core/llm.py`)
+does not exist yet.
 
 ---
 
@@ -176,7 +177,6 @@ with a decision and record it in §4.
 
 | # | Discrepancy | Detail |
 |---|---|---|
-| D5 | **Python project layout** | `pyproject.toml` is a `uv init` default with a `src/clouddesk/` package layout, a `[project.scripts]` entry and `langchain` as the only dependency. CLAUDE.md §4.3 specifies a `backend/app/` + `agents/` + `rag/` application layout. These are incompatible. |
 | D7 | **Table count** | CLAUDE.md §20 notes the database doc says 16 tables while RLS covers 15 data tables. `database/schema.sql` is the authority once written. |
 | D8 | **Missing README source** | CLAUDE.md §20: the Project 1 `README.md` referenced by the course documents was never supplied, so the §14 command list is taken from stage docs and is unverified. |
 | D9 | **External directories** | The course documents reference `../docs/…`, `../deployment-agent/…` and `../shared-infrastructure/…`, which sit outside the project. Undecided whether they are copied in or referenced. |
@@ -196,6 +196,9 @@ with a decision and record it in §4.
 | 2026-10-31 | **The remote is live, not empty** (closes D4) | Three commits exist (`01bcb53`, `e860cc8`, `a6bcf03`) and `origin/main`, `origin/development`, `origin/test` are all present. The Git guide's "empty as of 2026-10-23" section 3 was stale and has been rewritten as a clone-and-verify procedure. |
 | 2026-10-31 | **The promotion branch is named `testing`, not `test`** (closes D2) | Rename performed and verified: `testing` exists locally and on the remote, `test` is gone on both, and `origin/HEAD` still points at `main`. The old branch carried no commits that were not already in `development`, so nothing was lost. |
 | 2026-10-31 | **Git guide reference corrected** (closes D6) | CLAUDE.md §14 pointed at `Git_GitHub_Workflow_Guide.docx`; the file on disk is `docs/Git_Github_Workflow_Guide.md` and §14 now links to it. The guide's own reading-list row pointing at `.cursor/skills/…` was corrected to `.claude/skills/…` at the same time. |
+| 2026-10-31 | **The project is an application, not a package** (closes D5, P1-1) | Removed the `uv init` scaffold (`src/clouddesk/__init__.py`, a 2-line hello-world) along with `[project.scripts]` and the `uv_build` backend. `pyproject.toml` now sets `[tool.uv] package = false` and declares the import roots via `pythonpath = ["backend", "."]`, matching CLAUDE.md §4.3. `langchain` was kept in dependencies to avoid churning `uv.lock` before Phase 9 needs it. |
+| 2026-10-31 | **Log level is derived, not configured** (P1-1) | `DEBUG` in demo mode, `INFO` in production, as a property on `Settings`. Avoids adding a `LOG_LEVEL` env var that CLAUDE.md §10.1 does not list, since `.env.example` must cover every variable. |
+| 2026-10-31 | **`MAX_REFUND_WITHOUT_APPROVAL` is a `Decimal`** (P1-1) | It is money, compared against refund amounts. A float cannot represent `10.10` exactly, and this value gates whether a human sees a refund (F9). |
 | 2026-10-31 | **`TASKS.md` is the course's own version, not the generated one** | The generated tracker numbered sub-tasks `1.1`/`4.2` with its own branch names, which contradicted `docs/Git_Github_Workflow_Guide.md` — already in the repo and written against `P1-1 · feature/backend-config-logging`. The course version is authoritative and uses the `P<phase>-<n>` scheme the guide expects. The generated file has been deleted and is recoverable from git history. Consequence: `TASKS.md` has **14** execution phases against this spec's **13** — see its "Map to `PLAN_PHASE.md`" table and the warning at the top of `PLAN_PHASE.md`. |
 
 ---

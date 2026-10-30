@@ -218,3 +218,26 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- CloudDesk (CLAUDE.md §18.11) -------------------------------------------
+# Never commit: local state, databases, secrets, or Terraform state/plans.
+
+# Local runtime state
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment files. .env.example is committed and holds placeholders only.
+.env.*
+!.env.example
+
+# Terraform: state, plans, and variable files hold secrets and real infra ids.
+terraform.tfvars
+*.auto.tfvars
+backend.hcl
+tfplan
+*.tfplan
+.terraform/
+*.tfstate
+*.tfstate.*

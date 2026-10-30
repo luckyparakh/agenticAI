@@ -80,8 +80,8 @@ tests/conftest.py · tests/unit/test_llm_provider.py · tests/api/test_health.py
 **Exit criteria**
 
 - [ ] `/health`, `/health/live`, `/health/ready` respond; `/health/live` performs no I/O
-- [ ] `setup_logging()` emits JSON lines carrying `request_id` and `workflow_id` fields
-- [ ] `get_settings()` is `lru_cache`d and reads `.env`
+- [x] `setup_logging()` emits JSON lines carrying `request_id` and `workflow_id` fields — P1-1
+- [x] `get_settings()` is `lru_cache`d and reads `.env` — P1-1
 - [ ] `get_llm()` returns the fake provider with no API key present
 - [ ] `tests/conftest.py` sets env vars **before** importing the app
 - [ ] `make test` passes offline; `make lint` clean
