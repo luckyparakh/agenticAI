@@ -8,6 +8,7 @@ import logging
 from typing import Any
 
 import pytest
+
 from app.core.logging import (
     JsonFormatter,
     bind_request_id,

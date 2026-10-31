@@ -145,8 +145,14 @@ class JsonFormatter(logging.Formatter):
 def setup_logging(level: str | int | None = None) -> None:
     """Install the JSON formatter on the root logger.
 
-    Idempotent: calling it twice does not double every line, which matters
-    because the test suite and the app lifespan both call it.
+    Safe to call repeatedly: it rebuilds rather than stacking, so the root
+    logger always ends up with exactly one handler. Both the app lifespan and
+    the test suite call it, sometimes several times in one process.
+
+    It rebuilds rather than returning early on purpose. A `StreamHandler` binds
+    whatever `sys.stdout` was at construction time, so an early return would
+    leave the old stream attached after something replaced it — which is both
+    how pytest's output capture works and how a re-exec would behave.
     """
     if level is None:
         # Imported here so importing this module never pulls in settings parsing.
@@ -156,15 +162,8 @@ def setup_logging(level: str | int | None = None) -> None:
 
     root = logging.getLogger()
 
-    existing = next(
-        (h for h in root.handlers if getattr(h, _CONFIGURED_FLAG, False)),
-        None,
-    )
-    if existing is not None:
-        root.setLevel(level)
-        return
-
-    # Replace anything a library installed, so output stays parseable.
+    # Drop ours from a previous call, and anything basicConfig or a library
+    # installed, so output stays parseable and never doubles.
     for handler in list(root.handlers):
         root.removeHandler(handler)
 
