@@ -75,7 +75,15 @@ understand_ticket → classify_severity → customer_context → knowledge_retri
 
 ### Middleware order
 
-Outermost last: **CORS → RequestId → RateLimit → Audit**.
+Request order, outermost first: **CORS → RequestId → RateLimit → Audit → route**.
+
+Starlette wraps each `add_middleware` call *around* what is already installed, so
+**the last one added is the outermost**. `app.main._add_middleware` therefore calls them in
+reverse of the chain above. Getting this wrong is silent — nothing errors, the order is just
+different — so change it only with that function's comment in view.
+
+`ServerErrorMiddleware` sits outside all of them and cannot be reordered. That is why unhandled
+exceptions are caught by an `Exception` handler instead (see the decision log).
 
 ### Evaluation thresholds — these fail the build
 
@@ -152,10 +160,11 @@ The four states are distinct. Never collapse them into "done" (CLAUDE.md §15.1)
 | Planning docs (`PLAN.md`, `PLAN_PHASE.md`, `TASKS.md`, this file) | written |
 | Agent skills (`.claude/skills/`) | written |
 | `docs/API_CONTRACT.md`, `docs/ARCHITECTURE.md` | written — **specification only, no code implements them yet** |
-| Backend application code | **in progress** — `backend/app/core/config.py` and `logging.py` exist (P1-1). No `agents/`, `rag/`, `memory/`, `integrations/` directories yet. |
+| Backend application code | **in progress** — `core/{config,logging,health}.py`, `main.py`, `api/health.py`, `middleware/request_id.py`, `schemas/health.py` (P1-1, P1-2). No `agents/`, `rag/`, `memory/`, `integrations/` directories yet. |
+| Health endpoints | **validated locally** — all three respond; verified against a running uvicorn, not only via TestClient. `/health/ready` honestly reports all four components as `not_configured` because none of them exist yet. |
 | Frontend | **not started** |
 | Database schema / sample data | **not started** |
-| Tests | **validated locally** for P1-1 only — 53 tests, `uv run pytest` green in ~0.3 s offline. No `Makefile` yet, so `make test` itself does not exist (P1-4). |
+| Tests | **validated locally** for P1-1 and P1-2 — 111 tests, `uv run pytest` green in ~1.2 s offline. No `Makefile` yet, so `make test` itself does not exist (P1-4). |
 | Containers, Terraform, CI workflows | **not started** |
 | Cloud deployment | **no cloud credentials used; nothing applied to any real account** |
 | GitHub Actions | **never executed** — no workflow files exist and the repo has not been pushed with secrets configured |
@@ -197,6 +206,10 @@ with a decision and record it in §4.
 | 2026-10-31 | **The promotion branch is named `testing`, not `test`** (closes D2) | Rename performed and verified: `testing` exists locally and on the remote, `test` is gone on both, and `origin/HEAD` still points at `main`. The old branch carried no commits that were not already in `development`, so nothing was lost. |
 | 2026-10-31 | **Git guide reference corrected** (closes D6) | CLAUDE.md §14 pointed at `Git_GitHub_Workflow_Guide.docx`; the file on disk is `docs/Git_Github_Workflow_Guide.md` and §14 now links to it. The guide's own reading-list row pointing at `.cursor/skills/…` was corrected to `.claude/skills/…` at the same time. |
 | 2026-10-31 | **The project is an application, not a package** (closes D5, P1-1) | Removed the `uv init` scaffold (`src/clouddesk/__init__.py`, a 2-line hello-world) along with `[project.scripts]` and the `uv_build` backend. `pyproject.toml` now sets `[tool.uv] package = false` and declares the import roots via `pythonpath = ["backend", "."]`, matching CLAUDE.md §4.3. `langchain` was kept in dependencies to avoid churning `uv.lock` before Phase 9 needs it. |
+| 2026-10-31 | **A handler for `Exception` is registered, not just middleware** (P1-2) | Starlette's `ServerErrorMiddleware` is the outermost layer, *outside* all user middleware, so the 500 it builds never passes through `RequestIdMiddleware`. Without the handler a 500 returns `text/plain` and **no `X-Request-ID`** — breaking the `{"detail": ...}` error shape (§10) and N3 on the one response where correlation matters most. Caught by a test, not by review. |
+| 2026-10-31 | **`/health/ready` reports `not_configured`, never a fake `ok`** (P1-2) | `backend/app/core/health.py` is a registry; each component registers its check when its phase lands (database P2-3, redis P3-3, vector store P5-2, llm P9-1). Until then the component reports `not_configured`, which does **not** block readiness. A health endpoint that claims a database is `ok` before one exists is the worst possible place to be dishonest. |
+| 2026-10-31 | **`RequestIdMiddleware` is pure ASGI, not `BaseHTTPMiddleware`** (P1-2) | It wraps `send`, so the header is attached to the response message itself and survives on 404s, 405s and validation errors that the application never returns itself. The incoming header is also sanitised (charset + 128-char limit) because it is echoed back and written into every log line for that request — an unchecked value is a log-injection vector. |
+| 2026-10-31 | **`setup_logging()` rebuilds rather than returning early** (P1-2) | A `StreamHandler` binds whatever `sys.stdout` was at construction. Returning early on a second call left the old stream attached, which broke P1-1's logging tests the moment the API tests started calling `setup_logging()` first via the app lifespan. Still idempotent in the sense that matters: exactly one handler, never duplicated output. |
 | 2026-10-31 | **Log level is derived, not configured** (P1-1) | `DEBUG` in demo mode, `INFO` in production, as a property on `Settings`. Avoids adding a `LOG_LEVEL` env var that CLAUDE.md §10.1 does not list, since `.env.example` must cover every variable. |
 | 2026-10-31 | **`MAX_REFUND_WITHOUT_APPROVAL` is a `Decimal`** (P1-1) | It is money, compared against refund amounts. A float cannot represent `10.10` exactly, and this value gates whether a human sees a refund (F9). |
 | 2026-10-31 | **`TASKS.md` is the course's own version, not the generated one** | The generated tracker numbered sub-tasks `1.1`/`4.2` with its own branch names, which contradicted `docs/Git_Github_Workflow_Guide.md` — already in the repo and written against `P1-1 · feature/backend-config-logging`. The course version is authoritative and uses the `P<phase>-<n>` scheme the guide expects. The generated file has been deleted and is recoverable from git history. Consequence: `TASKS.md` has **14** execution phases against this spec's **13** — see its "Map to `PLAN_PHASE.md`" table and the warning at the top of `PLAN_PHASE.md`. |

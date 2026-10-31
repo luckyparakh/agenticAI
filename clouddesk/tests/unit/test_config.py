@@ -5,8 +5,9 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
-from app.core.config import DEFAULT_JWT_SECRET, Settings, get_settings
 from pydantic import SecretStr, ValidationError
+
+from app.core.config import DEFAULT_JWT_SECRET, Settings, get_settings
 
 # Every test builds Settings with `_env_file=None` so a developer's real .env
 # can never change the outcome.
